@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ Markdown Visualizer Pro</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg-1: #0f0c29;
+    --bg-2: #302b63;
+    --bg-3: #24243e;
+    --accent: #ff6b6b;
+    --accent2: #4ecdc4;
+    --accent3: #ffe66d;
+    --accent4: #c471f5;
+    --text: #f0f0f0;
+    --panel: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.1);
+  }
+  
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
+    background-size: 400% 400%;
+    animation: bgShift 15s ease infinite;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  @keyframes bgShift {
+    0%,100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  /* Animated background particles */
+  .bg-particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  
+  .bg-particles::before, .bg-particles::after {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+    animation: floatBlob 20s infinite ease-in-out;
+  }
+  
+  .bg-particles::before {
+    background: radial-gradient(circle, var(--accent), transparent);
+    top: -200px;
+    left: -200px;
+  }
+  
+  .bg-particles::after {
+    background: radial-gradient(circle, var(--accent2), transparent);
+    bottom: -200px;
+    right: -200px;
+    animation-delay: -10s;
+  }
+  
+  @keyframes floatBlob {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(100px,80px) scale(1.2); }
+    66% { transform: translate(-80px,60px) scale(0.9); }
+  }
+  
+  header {
+    padding: 15px 25px;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  h1 {
+    font-size: 1.5em;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3), var(--accent4), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 300% auto;
+    animation: shine 4s linear infinite;
+    cursor: default;
+  }
+  
+  @keyframes shine {
+    to { background-position: 300% center; }
+  }
+  
+  .header-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  button, .btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(255,107,107,0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  button::before, .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0; height: 0;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    transform: translate(-50%,-50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  button:hover::before, .btn:hover::before {
+    width: 300px; height: 300px;
+  }
+  
+  button:hover, .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,107,107,0.5);
+  }
+  
+  button:active, .btn:active { transform: translateY(0) scale(0.97); }
+  
+  .btn-fx {
+    background: linear-gradient(135deg, var(--accent4), var(--accent));
+    box-shadow: 0 4px 15px rgba(196,113,245,0.4);
+    animation: pulseBtn 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulseBtn {
+    0%,100% { box-shadow: 0 4px 15px rgba(196,113,245,0.4); }
+    50% { box-shadow: 0 4px 25px rgba(196,113,245,0.8); }
+  }
+  
+  .btn-icon {
+    width: 42px; height: 42px;
+    padding: 0;
+    justify-content: center;
+    font-size: 18px;
+  }
+  
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 15px;
+    height: calc(100vh - 70px);
+    transition: all 0.5s ease;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .container.vertical {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+  
+  .panel {
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 20px;
+    overflow: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .panel:hover {
+    box-shadow: 0 8px 40px rgba(78,205,196,0.15);
+  }
+  
+  .panel-title {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.6;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .panel-title::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent2);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent2);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.3); }
+  }
+  
+  textarea {
+    width: 100%;
+    height: calc(100% - 40px);
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 15px;
+    color: var(--text);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    transition: all 0.3s;
+  }
+  
+  textarea:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 20px rgba(78,205,196,0.3);
+  }
+  
+  .preview {
+    height: calc(100% - 40px);
+    overflow: auto;
+    padding: 20px;
+    background: rgba(255,255,255,0.95);
+    color: #333;
+    border-radius: 10px;
+    line-height: 1.6;
+  }
+  
+  .preview h1, .preview h2, .preview h3 {
+    margin: 0.8em 0 0.4em;
+    color: #2d3748;
+  }
+  
+  .preview h1 { border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3em; }
+  .preview h2 { border-bottom: 1px solid #e2e8f0; padding-bottom: 0.2em; }
+  .preview p { margin: 0.8em 0; }
+  
+  .preview code {
+    background: #f7fafc;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #d63384;
+    font-size: 0.9em;
+  }
+  
+  .preview pre {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1em 0;
+  }
+  
+  .preview pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+  
+  .preview blockquote {
+    border-left: 4px solid var(--accent2);
+    padding: 0.5em 1em;
+    margin: 1em 0;
+    background: #f7fafc;
+    border-radius: 0 8px 8px 0;
+  }
+  
+  .preview ul, .preview ol { margin: 0.8em 0 0.8em 2em; }
+  .preview a { color: #3182ce; text-decoration: none; }
+  .preview a:hover { text-decoration: underline; }
+  .preview img { max-width: 100%; border-radius: 8px; margin: 1em 0; }
+  
+  .preview table {
+    border-collapse: collapse;
+    margin: 1em 0;
+    width: 100%;
+  }
+  
+  .preview th, .preview td {
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+  }
+  
+  .preview th { background: #f7fafc; font-weight: 600; }
+  
+  .preview hr {
+    border: none;
+    border-top: 2px solid #e2e8f0;
+    margin: 1.5em 0;
+  }
+  
+  /* === SETTINGS POPUP === */
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    z-index: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  
+  .popup-overlay.show { opacity: 1; pointer-events: all; }
+  
+  .popup {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%) scale(0.7);
+    background: linear-gradient(145deg, rgba(48,43,99,0.95), rgba(15,12,41,0.95));
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 30px;
+    min-width: 380px;
+    max-width: 90vw;
+    z-index: 501;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 100px rgba(196,113,245,0.2);
+  }
+  
+  .popup.show {
+    opacity: 1;
+    pointer-events: all;
+    transform: translate(-50%,-50%) scale(1);
+  }
+  
+  .popup h2 {
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .popup-close {
+    position: absolute;
+    top: 15px; right: 15px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    padding: 0;
+    font-size: 20px;
+    justify-content: center;
+    box-shadow: none;
+  }
+  
+  .popup-section {
+    margin-bottom: 18px;
+  }
+  
+  .popup-section label {
+    display: block;
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .popup-section .button-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .popup-section button {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  /* === FX OVERLAY === */
+  .fx-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9000;
+    overflow: hidden;
+  }
+  
+  /* Confetti */
+  .confetti {
+    position: absolute;
+    width: 12px; height: 12px;
+    top: -20px;
+    opacity: 0;
+    animation: confettiFall 3s ease-in forwards;
+  }
+  
+  @keyframes confettiFall {
+    0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(110vh) rotate(720deg); }
+  }
+  
+  /* Ripple wave */
+  .ripple-wave {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px solid var(--accent2);
+    transform: translate(-50%,-50%);
+    animation: rippleExpand 1.5s ease-out forwards;
+  }
+  
+  @keyframes rippleExpand {
+    0% { width: 0; height: 0; opacity: 1; border-width: 5px; }
+    100% { width: 1500px; height: 1500px; opacity: 0; border-width: 1px; }
+  }
+  
+  /* Floating emoji */
+  .float-emoji {
+    position: absolute;
+    font-size: 40px;
+    animation: floatUp 3s ease-out forwards;
+    opacity: 0;
+  }
+  
+  @keyframes floatUp {
+    0% { opacity: 0; transform: translateY(0) scale(0.3) rotate(0deg); }
+    20% { opacity: 1; transform: translateY(-50px) scale(1.3) rotate(15deg); }
+    100% { opacity: 0; transform: translateY(-400px) scale(0.8) rotate(-30deg); }
+  }
+  
+  /* Spotlight flash */
+  .spotlight-flash {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,230,109,0.4), transparent 40%);
+    pointer-events: none;
+    z-index: 8500;
+    opacity: 0;
+    animation: spotFlash 1.5s ease-out forwards;
+  }
+  
+  @keyframes spotFlash {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  
+  /* Shaking panel effect */
+  .shake-fx {
+    animation: shakeIt 0.6s ease-in-out;
+  }
+  
+  @keyframes shakeIt {
+    0%,100% { transform: translate(0); }
+    20% { transform: translate(-8px, 4px) rotate(-1deg); }
+    40% { transform: translate(8px, -4px) rotate(1deg); }
+    60% { transform: translate(-6px, -3px) rotate(-1deg); }
+    80% { transform: translate(6px, 3px) rotate(1deg); }
+  }
+  
+  /* Glow pulse on panels */
+  .glow-fx {
+    animation: glowPulse 2s ease-in-out;
+  }
+  
+  @keyframes glowPulse {
+    0%,100% { box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    50% { box-shadow: 0 0 80px var(--accent2), 0 0 120px var(--accent4); }
+  }
+  
+  /* Rainbow border on container */
+  .rainbow-fx {
+    position: relative;
+  }
+  
+  .rainbow-fx::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 18px;
+    background: linear-gradient(45deg, var(--accent), var(--accent2), var(--accent3), var(--accent4), var(--accent));
+    background-size: 400% 400%;
+    z-index: -1;
+    animation: rainbowMove 2s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .rainbow-fx.active::after { opacity: 1; }
+  
+  @keyframes rainbowMove {
+    0%,100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  /* Sparkles */
+  .sparkle {
+    position: absolute;
+    pointer-events: none;
+    width: 8px; height: 8px;
+    background: var(--accent3);
+    border-radius: 50%;
+    box-shadow: 0 0 15px var(--accent3), 0 0 25px var(--accent3);
+    animation: sparkleAnim 1.2s ease-out forwards;
+  }
+  
+  @keyframes sparkleAnim {
+    0% { transform: scale(0) translate(0,0); opacity: 1; }
+    100% { 
+      transform: scale(1.5) translate(var(--dx,0), var(--dy,-100px)); 
+      opacity: 0; 
+    }
+  }
+  
+  /* Star burst */
+  .star-burst {
+    position: absolute;
+    font-size: 24px;
+    color: var(--accent3);
+    text-shadow: 0 0 10px var(--accent3);
+    animation: starBurst 1s ease-out forwards;
+    pointer-events: none;
+  }
+  
+  @keyframes starBurst {
+    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
+    100% { transform: scale(0.3) rotate(360deg); opacity: 0; }
+  }
+  
+  /* Color shift effect */
+  .color-shift-fx {
+    animation: colorShift 2s ease-in-out;
+  }
+  
+  @keyframes colorShift {
+    0%,100% { filter: hue-rotate(0deg) saturate(1); }
+    50% { filter: hue-rotate(180deg) saturate(1.5); }
+  }
+  
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, var(--accent2), #44a08d);
+    padding: 15px 25px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    transform: translateX(400px);
+    transition: transform 0.4s;
+    z-index: 2000;
+  }
+  
+  .toast.show { transform: translateX(0); }
+  
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+  
+  .file-input { display: none; }
+  
+  @media (max-width: 700px) {
+    .container { grid-template-columns: 1fr !important; grid-template-rows: 1fr 1fr; }
+    h1 { font-size: 1.1em; }
+    button { padding: 8px 12px; font-size: 0.85em; }
+    .popup { min-width: 280px; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-particles"></div>
+
+<header>
+  <h1>✨ MD Visualizer Pro</h1>
+  <div class="header-buttons">
+    <button id="fxBtn" class="btn-fx">🎆 Wow Effect</button>
+    <button id="settingsBtn" class="btn-icon" title="Settings">⚙️</button>
+  </div>
+</header>
+
+<div class="container" id="container">
+  <div class="panel" id="editorPanel">
+    <div class="panel-title">Markdown Source</div>
+    <textarea id="editor" placeholder="Paste your markdown here or open settings to load README.md..."></textarea>
+  </div>
+  <div class="panel" id="previewPanel">
+    <div class="panel-title">Live Preview</div>
+    <div class="preview" id="preview"></div>
+  </div>
+</div>
+
+<!-- Settings Popup -->
+<div class="popup-overlay" id="popupOverlay"></div>
+<div class="popup" id="popup">
+  <button class="popup-close" id="popupClose">×</button>
+  <h2>⚙️ Settings</h2>
+  
+  <div class="popup-section">
+    <label>📂 File Operations</label>
+    <div class="button-row">
+      <button id="loadFile">📂 Load README.md</button>
+      <input type="file" id="fileInput" class="file-input" accept=".md,.markdown,.txt">
+      <button id="sampleBtn">📝 Load Sample</button>
+    </div>
+  </div>
+  
+  <div class="popup-section">
+    <label>🔲 Layout</label>
+    <div class="button-row">
+      <button id="orientationBtn">⇄ Toggle Orientation</button>
+    </div>
+  </div>
+  
+  <div class="popup-section">
+    <label>🎨 Effects</label>
+    <div class="button-row">
+      <button id="fxBtn2" class="btn-fx">🎆 Trigger Wow Effect</button>
+    </div>
+  </div>
+  
+  <div class="popup-section">
+    <label>🗑️ Content</label>
+    <div class="button-row">
+      <button id="clearBtn">🗑️ Clear All</button>
+    </div>
+  </div>
+</div>
+
+<div class="fx-overlay" id="fxOverlay"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+  // ====== Markdown Parser ======
+  function parseMarkdown(md) {
+    if (!md) return '';
+    let html = md;
+    
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => 
+      `<pre><code class="lang-${lang}">${escapeHtml(code)}</code></pre>`);
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
+    html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+    html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    
+    html = html.replace(/^---+$/gm, '<hr>');
+    
+    html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+    
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    
+    html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+    html = html.replace(/<\/blockquote>\n<blockquote>/g, '<br>');
+    
+    html = html.replace(/((?:^\|.+\|\n)+)/gm, (match) => {
+      const rows = match.trim().split('\n');
+      if (rows.length < 2) return match;
+      let table = '<table>';
+      rows.forEach((row, i) => {
+        if (i === 1 && /^\|[\s\-:|]+\|$/.test(row)) return;
+        const cells = row.split('|').slice(1, -1).map(c => c.trim());
+        const tag = i === 0 ? 'th' : 'td';
+        table += `<tr>${cells.map(c => `<${tag}>${c}</${tag}>`).join('')}</tr>`;
+      });
+      return table + '</table>';
+    });
+    
+    html = html.replace(/^(\s*)[-*+] (.+)$/gm, '$1<li>$2</li>');
+    html = html.replace(/^(\s*)\d+\. (.+)$/gm, '$1<li class="ol">$2</li>');
+    html = html.replace(/(<li(?!\sclass).*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+    html = html.replace(/(<li class="ol".*?<\/li>\n?)+/g, m => `<ol>${m.replace(/ class="ol"/g,'')}</ol>`);
+    
+    html = html.split(/\n\n+/).map(block => {
+      if (/^<(h[1-6]|ul|ol|pre|blockquote|hr|table|img)/.test(block.trim())) return block;
+      if (block.trim()) return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+      return '';
+    }).join('\n');
+    
+    return html;
+  }
+  
+  function escapeHtml(s) {
+    return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  }
+  
+  // ====== Elements ======
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const container = document.getElementById('container');
+  const toast = document.getElementById('toast');
+  const fxOverlay = document.getElementById('fxOverlay');
+  const editorPanel = document.getElementById('editorPanel');
+  const previewPanel = document.getElementById('previewPanel');
+  const popup = document.getElementById('popup');
+  const popupOverlay = document.getElementById('popupOverlay');
+  
+  // ====== State ======
+  function updatePreview() {
+    preview.innerHTML = parseMarkdown(editor.value);
+    saveState();
+  }
+  
+  function saveState() {
+    localStorage.setItem('mdvis_content', editor.value);
+    localStorage.setItem('mdvis_orientation', container.classList.contains('vertical') ? 'v' : 'h');
+    localStorage.setItem('mdvis_scroll_editor', editor.scrollTop);
+    localStorage.setItem('mdvis_scroll_preview', preview.scrollTop);
+  }
+  
+  function restoreState() {
+    const content = localStorage.getItem('mdvis_content');
+    const orient = localStorage.getItem('mdvis_orientation');
+    if (content) editor.value = content;
+    if (orient === 'v') container.classList.add('vertical');
+    updatePreview();
+    setTimeout(() => {
+      editor.scrollTop = parseInt(localStorage.getItem('mdvis_scroll_editor') || 0);
+      preview.scrollTop = parseInt(localStorage.getItem('mdvis_scroll_preview') || 0);
+    }, 100);
+  }
+  
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+  
+  // ====== Effects Engine ======
+  const COLORS = ['#ff6b6b','#4ecdc4','#ffe66d','#c471f5','#ff9a3c','#44a08d'];
+  const EMOJIS = ['✨','🎉','🚀','💫','⭐','🌟','💥','🎆','🎇','🔥','💎','🌈'];
+  
+  function spawnConfetti(count = 80) {
+    for (let i = 0; i < count; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + '%';
+      c.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+      c.style.animationDelay = (Math.random() * 0.5) + 's';
+      c.style.animationDuration = (2 + Math.random() * 2) + 's';
+      c.style.transform = `rotate(${Math.random()*360}deg)`;
+      if (Math.random() > 0.5) c.style.borderRadius = '50%';
+      fxOverlay.appendChild(c);
+      setTimeout(() => c.remove(), 4000);
+    }
+  }
+  
+  function spawnRipple(x, y) {
+    const r = document.createElement('div');
+    r.className = 'ripple-wave';
+    r.style.left = x + 'px';
+    r.style.top = y + 'px';
+    r.style.borderColor = COLORS[Math.floor(Math.random()*COLORS.length)];
+    fxOverlay.appendChild(r);
+    setTimeout(() => r.remove(), 1500);
+  }
+  
+  function spawnFloatingEmojis(count = 15) {
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const e = document.createElement('div');
+        e.className = 'float-emoji';
+        e.textContent = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+        e.style.left = Math.random() * 100 + '%';
+        e.style.bottom = '0px';
+        e.style.animationDuration = (2 + Math.random() * 2) + 's';
+        fxOverlay.appendChild(e);
+        setTimeout(() => e.remove(), 4000);
+      }, i * 100);
+    }
+  }
+  
+  function spawnSpotlight(x, y) {
+    const s = document.createElement('div');
+    s.className = 'spotlight-flash';
+    s.style.setProperty('--x', x + 'px');
+    s.style.setProperty('--y', y + 'px');
+    fxOverlay.appendChild(s);
+    setTimeout(() => s.remove(), 1500);
+  }
+  
+  function spawnSparkles(x, y, count = 20) {
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('div');
+      s.className = 'sparkle';
+      s.style.left = x + 'px';
+      s.style.top = y + 'px';
+      const angle = (Math.PI * 2 * i) / count;
+      const dist = 80 + Math.random() * 80;
+      s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+      s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+      s.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+      s.style.boxShadow = `0 0 15px ${COLORS[Math.floor(Math.random()*COLORS.length)]}`;
+      fxOverlay.appendChild(s);
+      setTimeout(() => s.remove(), 1200);
+    }
+  }
+  
+  function spawnStarBurst(x, y, count = 10) {
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const s = document.createElement('div');
+        s.className = 'star-burst';
+        s.textContent = ['★','✦','✧','✪','✯'][Math.floor(Math.random()*5)];
+        s.style.left = (x + (Math.random()-0.5)*200) + 'px';
+        s.style.top = (y + (Math.random()-0.5)*200) + 'px';
+        s.style.color = COLORS[Math.floor(Math.random()*COLORS.length)];
+        s.style.fontSize = (20 + Math.random()*20) + 'px';
+        fxOverlay.appendChild(s);
+        setTimeout(() => s.remove(), 1000);
+      }, i * 50);
+    }
+  }
+  
+  // Mega WOW effect - 2 second show
+  function triggerWowEffect(originX, originY) {
+    const cx = originX || window.innerWidth / 2;
+    const cy = originY || window.innerHeight / 2;
+    
+    // T=0: Spotlight + Ripple + Star burst + Sparkles
+    spawnSpotlight(cx, cy);
+    spawnRipple(cx, cy);
+    spawnSparkles(cx, cy, 30);
+    spawnStarBurst(cx, cy, 15);
+    
+    // Panels react
+    editorPanel.classList.add('glow-fx');
+    previewPanel.classList.add('glow-fx');
+    container.classList.add('rainbow-fx', 'active');
+    
+    // T=200ms: Confetti burst
+    setTimeout(() => {
+      spawnConfetti(60);
+      spawnRipple(cx, cy);
+    }, 200);
+    
+    // T=500ms: Shake + color shift
+    setTimeout(() => {
+      editorPanel.classList.add('shake-fx');
+      previewPanel.classList.add('shake-fx');
+      preview.classList.add('color-shift-fx');
+      spawnSparkles(cx, cy, 20);
+    }, 500);
+    
+    // T=800ms: Floating emojis + second ripple
+    setTimeout(() => {
+      spawnFloatingEmojis(20);
+      spawnRipple(cx, cy);
+      spawnStarBurst(cx, cy, 10);
+    }, 800);
+    
+    // T=1200ms: Extra confetti
+    setTimeout(() => {
+      spawnConfetti(40);
+      spawnSparkles(cx, cy, 15);
+    }, 1200);
+    
+    // T=1500ms: Final ripple
+    setTimeout(() => {
+      spawnRipple(cx, cy);
+    }, 1500);
+    
+    // Cleanup at 2s
+    setTimeout(() => {
+      editorPanel.classList.remove('glow-fx', 'shake-fx');
+      previewPanel.classList.remove('glow-fx', 'shake-fx');
+      preview.classList.remove('color-shift-fx');
+      container.classList.remove('active');
+    }, 2000);
+    
+    setTimeout(() => {
+      container.classList.remove('rainbow-fx');
+    }, 2300);
+  }
+  
+  // ====== Event listeners ======
+  editor.addEventListener('input', updatePreview);
+  editor.addEventListener('scroll', saveState);
+  preview.addEventListener('scroll', saveState);
+  
+  function openPopup() {
+    popup.classList.add('show');
+    popupOverlay.classList.add('show');
+  }
+  
+  function closePopup() {
+    popup.classList.remove('show');
+    popupOverlay.classList.remove('show');
+  }
+  
+  document.getElementById('settingsBtn').addEventListener('click', openPopup);
+  document.getElementById('popupClose').addEventListener('click', closePopup);
+  popupOverlay.addEventListener('click', closePopup);
+  
+  document.getElementById('loadFile').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+  });
+  
+  document.getElementById('fileInput').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      editor.value = ev.target.result;
+      updatePreview();
+      showToast('✓ Loaded ' + f.name);
+      closePopup();
+      // Auto-trigger wow effect on load
+      setTimeout(() => triggerWowEffect(), 300);
+    };
+    r.readAsText(f);
+  });
+  
+  document.getElementById('orientationBtn').addEventListener('click', () => {
+    container.classList.toggle('vertical');
+    saveState();
+    showToast(container.classList.contains('vertical') ? '↕ Vertical layout' : '↔ Horizontal layout');
+  });
+  
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (confirm('Clear all content?')) {
+      editor.value = '';
+      updatePreview();
+      showToast('🗑️ Cleared');
+      closePopup();
+    }
+  });
+  
+  document.getElementById('sampleBtn').addEventListener('click', () => {
+    editor.value = SAMPLE_MD;
+    updatePreview();
+    showToast('✓ Sample loaded');
+    closePopup();
+    setTimeout(() => triggerWowEffect(), 300);
+  });
+  
+  function handleFxClick(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    triggerWowEffect(rect.left + rect.width/2, rect.top + rect.height/2);
+  }
+  
+  document.getElementById('fxBtn').addEventListener('click', handleFxClick);
+  document.getElementById('fxBtn2').addEventListener('click', (e) => {
+    handleFxClick(e);
+    closePopup();
+  });
+  
+  // ESC to close popup
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePopup();
+  });
+  
+  // ====== Sample Content ======
+  const SAMPLE_MD = `# 🚀 Welcome to MD Visualizer Pro
+
+A **beautiful** and *powerful* markdown editor with live preview and stunning effects.
+
+## ✨ Features
+
+- 📝 Real-time preview
+- 🎆 Spectacular WOW effects
+- 💾 Auto-save state
+- ↔️ Vertical/Horizontal layout
+- 🎨 Beautiful animated UI
+
+## 📦 Installation
+
+\`\`\`bash
+npm install awesome-package
+npm start
+\`\`\`
+
+## 🔧 Usage
+
+Use \`inline code\` or check the example:
+
+\`\`\`javascript
+function hello(name) {
+  return \`Hello, \${name}!\`;
+}
+console.log(hello('World'));
+\`\`\`
+
+## 📊 Comparison
+
+| Feature | Basic | Pro |
+|---------|-------|-----|
+| Preview | ✓ | ✓ |
+| Effects | ✗ | ✓ |
+| Auto-save | ✗ | ✓ |
+
+## 💬 Quote
+
+> The best way to predict the future is to invent it.
+
+## 🔗 Links
+
+Visit [our website](https://example.com) for more info.
+
+---
+
+Made with ❤️ and lots of ☕`;
+  
+  // ====== Auto load README.md ======
+  async function tryAutoLoadReadme() {
+    if (localStorage.getItem('mdvis_content')) return;
+    try {
+      const res = await fetch('README.md');
+      if (res.ok) {
+        const text = await res.text();
+        editor.value = text;
+        updatePreview();
+        showToast('✓ Loaded README.md');
+        setTimeout(() => triggerWowEffect(), 500);
+        return;
+      }
+    } catch(e) {}
+    editor.value = SAMPLE_MD;
+    updatePreview();
+    setTimeout(() => triggerWowEffect(), 500);
+  }
+  
+  restoreState();
+  if (!editor.value) {
+    tryAutoLoadReadme();
+  } else {
+    // Welcome effect on reload
+    setTimeout(() => triggerWowEffect(), 400);
+  }
+  
+  window.addEventListener('beforeunload', saveState);
+</script>
+
+</body>
+</html>
