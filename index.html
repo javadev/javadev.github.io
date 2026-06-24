@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ Markdown Visualizer Pro</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg-1: #0f0c29;
+    --bg-2: #302b63;
+    --bg-3: #24243e;
+    --accent: #ff6b6b;
+    --accent2: #4ecdc4;
+    --accent3: #ffe66d;
+    --text: #f0f0f0;
+    --panel: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.1);
+  }
+  
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
+    background-size: 400% 400%;
+    animation: bgShift 15s ease infinite;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  @keyframes bgShift {
+    0%,100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  header {
+    padding: 15px 25px;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  h1 {
+    font-size: 1.5em;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% auto;
+    animation: shine 3s linear infinite;
+  }
+  
+  @keyframes shine {
+    to { background-position: 200% center; }
+  }
+  
+  button, .btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(255,107,107,0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  button:hover, .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,107,107,0.5);
+  }
+  
+  button:active { transform: translateY(0); }
+  
+  .btn-secondary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+  }
+  
+  .btn-orientation {
+    background: linear-gradient(135deg, var(--accent3), #ff9a3c);
+    color: #333;
+  }
+  
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    padding: 15px;
+    height: calc(100vh - 70px);
+    transition: all 0.5s ease;
+  }
+  
+  .container.vertical {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: calc(100vh - 70px);
+  }
+  
+  .panel {
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 20px;
+    overflow: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    position: relative;
+  }
+  
+  .panel-title {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.6;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .panel-title::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent2);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent2);
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  
+  textarea {
+    width: 100%;
+    height: calc(100% - 40px);
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 15px;
+    color: var(--text);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+  }
+  
+  textarea:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 20px rgba(78,205,196,0.3);
+  }
+  
+  .preview {
+    height: calc(100% - 40px);
+    overflow: auto;
+    padding: 20px;
+    background: rgba(255,255,255,0.95);
+    color: #333;
+    border-radius: 10px;
+    line-height: 1.6;
+  }
+  
+  .preview h1, .preview h2, .preview h3 {
+    margin: 0.8em 0 0.4em;
+    color: #2d3748;
+  }
+  
+  .preview h1 { border-bottom: 2px solid #e2e8f0; padding-bottom: 0.3em; }
+  .preview h2 { border-bottom: 1px solid #e2e8f0; padding-bottom: 0.2em; }
+  
+  .preview p { margin: 0.8em 0; }
+  
+  .preview code {
+    background: #f7fafc;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #d63384;
+    font-size: 0.9em;
+  }
+  
+  .preview pre {
+    background: #2d3748;
+    color: #e2e8f0;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1em 0;
+  }
+  
+  .preview pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+  
+  .preview blockquote {
+    border-left: 4px solid var(--accent2);
+    padding: 0.5em 1em;
+    margin: 1em 0;
+    background: #f7fafc;
+    border-radius: 0 8px 8px 0;
+  }
+  
+  .preview ul, .preview ol { margin: 0.8em 0 0.8em 2em; }
+  
+  .preview a { color: #3182ce; text-decoration: none; }
+  .preview a:hover { text-decoration: underline; }
+  
+  .preview img { max-width: 100%; border-radius: 8px; margin: 1em 0; }
+  
+  .preview table {
+    border-collapse: collapse;
+    margin: 1em 0;
+    width: 100%;
+  }
+  
+  .preview th, .preview td {
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+  }
+  
+  .preview th { background: #f7fafc; font-weight: 600; }
+  
+  .preview hr {
+    border: none;
+    border-top: 2px solid #e2e8f0;
+    margin: 1.5em 0;
+  }
+  
+  /* Image animation effects */
+  @keyframes attractAttention {
+    0% { transform: scale(0.5) rotate(-10deg); opacity: 0; filter: blur(20px); }
+    20% { transform: scale(1.1) rotate(5deg); opacity: 1; filter: blur(0px); }
+    40% { transform: scale(0.95) rotate(-2deg); }
+    60% { transform: scale(1.05) rotate(1deg); box-shadow: 0 0 60px var(--accent2); }
+    80% { transform: scale(1) rotate(0); box-shadow: 0 0 100px var(--accent3); }
+    100% { transform: scale(1) rotate(0); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  }
+  
+  @keyframes glow {
+    0%,100% { box-shadow: 0 0 30px var(--accent), 0 0 60px var(--accent2); }
+    50% { box-shadow: 0 0 60px var(--accent3), 0 0 100px var(--accent); }
+  }
+  
+  .image-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  
+  .image-modal.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  
+  .image-modal img {
+    max-width: 90%;
+    max-height: 90vh;
+    border-radius: 15px;
+    animation: attractAttention 2s ease-out forwards, glow 3s ease-in-out 2s infinite;
+  }
+  
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--accent);
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .modal-download {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .file-input {
+    display: none;
+  }
+  
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, var(--accent2), #44a08d);
+    padding: 15px 25px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    transform: translateX(400px);
+    transition: transform 0.4s;
+    z-index: 2000;
+  }
+  
+  .toast.show { transform: translateX(0); }
+  
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 4px; }
+  
+  @media (max-width: 700px) {
+    .container { grid-template-columns: 1fr !important; grid-template-rows: 1fr 1fr; }
+    h1 { font-size: 1.1em; }
+    button { padding: 8px 12px; font-size: 0.85em; }
+  }
+  
+  .sparkle {
+    position: fixed;
+    pointer-events: none;
+    width: 6px;
+    height: 6px;
+    background: var(--accent3);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent3);
+    animation: sparkleAnim 1s ease-out forwards;
+    z-index: 9999;
+  }
+  
+  @keyframes sparkleAnim {
+    0% { transform: scale(0) translateY(0); opacity: 1; }
+    100% { transform: scale(1) translateY(-100px); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✨ MD Visualizer Pro</h1>
+  <button id="loadFile" title="Load README.md">📂 Load README.md</button>
+  <input type="file" id="fileInput" class="file-input" accept=".md,.markdown,.txt">
+  <button id="toImage" class="btn-secondary">🖼️ To Image</button>
+  <button id="orientationBtn" class="btn-orientation">⇄ Toggle</button>
+  <button id="clearBtn" class="btn-secondary">🗑️ Clear</button>
+  <button id="sampleBtn" class="btn-secondary">📝 Sample</button>
+</header>
+
+<div class="container" id="container">
+  <div class="panel">
+    <div class="panel-title">Markdown Source</div>
+    <textarea id="editor" placeholder="Paste your markdown here or load README.md..."></textarea>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Live Preview</div>
+    <div class="preview" id="preview"></div>
+  </div>
+</div>
+
+<div class="image-modal" id="imageModal">
+  <button class="modal-close" id="modalClose">×</button>
+  <img id="modalImage" alt="Generated">
+  <button class="btn modal-download" id="downloadBtn">⬇️ Download Image</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  // Simple Markdown Parser
+  function parseMarkdown(md) {
+    if (!md) return '';
+    let html = md;
+    
+    // Code blocks
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (m, lang, code) => 
+      `<pre><code class="lang-${lang}">${escapeHtml(code)}</code></pre>`);
+    
+    // Inline code
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Headers
+    html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
+    html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+    html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    
+    // Horizontal rule
+    html = html.replace(/^---+$/gm, '<hr>');
+    
+    // Bold & Italic
+    html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+    
+    // Images
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+    
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    
+    // Blockquotes
+    html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+    html = html.replace(/<\/blockquote>\n<blockquote>/g, '<br>');
+    
+    // Tables
+    html = html.replace(/((?:^\|.+\|\n)+)/gm, (match) => {
+      const rows = match.trim().split('\n');
+      if (rows.length < 2) return match;
+      let table = '<table>';
+      rows.forEach((row, i) => {
+        if (i === 1 && /^\|[\s\-:|]+\|$/.test(row)) return;
+        const cells = row.split('|').slice(1, -1).map(c => c.trim());
+        const tag = i === 0 ? 'th' : 'td';
+        const wrapper = i === 0 ? 'thead' : 'tbody';
+        table += `<tr>${cells.map(c => `<${tag}>${c}</${tag}>`).join('')}</tr>`;
+      });
+      return table + '</table>';
+    });
+    
+    // Lists
+    html = html.replace(/^(\s*)[-*+] (.+)$/gm, '$1<li>$2</li>');
+    html = html.replace(/^(\s*)\d+\. (.+)$/gm, '$1<li class="ol">$2</li>');
+    html = html.replace(/(<li(?!\sclass).*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+    html = html.replace(/(<li class="ol".*?<\/li>\n?)+/g, m => `<ol>${m.replace(/ class="ol"/g,'')}</ol>`);
+    
+    // Paragraphs
+    html = html.split(/\n\n+/).map(block => {
+      if (/^<(h[1-6]|ul|ol|pre|blockquote|hr|table|img)/.test(block.trim())) return block;
+      if (block.trim()) return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+      return '';
+    }).join('\n');
+    
+    return html;
+  }
+  
+  function escapeHtml(s) {
+    return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  }
+  
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const container = document.getElementById('container');
+  const toast = document.getElementById('toast');
+  
+  function updatePreview() {
+    preview.innerHTML = parseMarkdown(editor.value);
+    saveState();
+  }
+  
+  function saveState() {
+    localStorage.setItem('mdvis_content', editor.value);
+    localStorage.setItem('mdvis_orientation', container.classList.contains('vertical') ? 'v' : 'h');
+    localStorage.setItem('mdvis_scroll_editor', editor.scrollTop);
+    localStorage.setItem('mdvis_scroll_preview', preview.scrollTop);
+  }
+  
+  function restoreState() {
+    const content = localStorage.getItem('mdvis_content');
+    const orient = localStorage.getItem('mdvis_orientation');
+    if (content) editor.value = content;
+    if (orient === 'v') container.classList.add('vertical');
+    updatePreview();
+    setTimeout(() => {
+      editor.scrollTop = parseInt(localStorage.getItem('mdvis_scroll_editor') || 0);
+      preview.scrollTop = parseInt(localStorage.getItem('mdvis_scroll_preview') || 0);
+    }, 100);
+  }
+  
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+  
+  function createSparkles(x, y) {
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement('div');
+      s.className = 'sparkle';
+      s.style.left = (x + (Math.random()-0.5)*100) + 'px';
+      s.style.top = (y + (Math.random()-0.5)*50) + 'px';
+      s.style.background = ['#ff6b6b','#4ecdc4','#ffe66d'][Math.floor(Math.random()*3)];
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1000);
+    }
+  }
+  
+  editor.addEventListener('input', updatePreview);
+  editor.addEventListener('scroll', saveState);
+  preview.addEventListener('scroll', saveState);
+  
+  document.getElementById('loadFile').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+  });
+  
+  document.getElementById('fileInput').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      editor.value = ev.target.result;
+      updatePreview();
+      showToast('✓ Loaded ' + f.name);
+    };
+    r.readAsText(f);
+  });
+  
+  document.getElementById('orientationBtn').addEventListener('click', () => {
+    container.classList.toggle('vertical');
+    saveState();
+    showToast(container.classList.contains('vertical') ? '↕ Vertical layout' : '↔ Horizontal layout');
+  });
+  
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (confirm('Clear content?')) {
+      editor.value = '';
+      updatePreview();
+    }
+  });
+  
+  document.getElementById('sampleBtn').addEventListener('click', () => {
+    editor.value = SAMPLE_MD;
+    updatePreview();
+    showToast('✓ Sample loaded');
+  });
+  
+  document.getElementById('toImage').addEventListener('click', async (e) => {
+    if (!editor.value.trim()) {
+      showToast('⚠️ Empty content');
+      return;
+    }
+    showToast('🎨 Generating image...');
+    
+    // Create offscreen render
+    const renderEl = document.createElement('div');
+    renderEl.style.cssText = 'position:fixed;left:-99999px;top:0;width:800px;padding:40px;background:white;color:#333;font-family:-apple-system,sans-serif;line-height:1.6;';
+    renderEl.innerHTML = parseMarkdown(editor.value);
+    // Apply preview-like styles
+    document.body.appendChild(renderEl);
+    
+    try {
+      const canvas = await html2canvas(renderEl, { 
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      
+      const modal = document.getElementById('imageModal');
+      const img = document.getElementById('modalImage');
+      img.src = dataUrl;
+      // Reset animation
+      img.style.animation = 'none';
+      void img.offsetWidth;
+      img.style.animation = '';
+      
+      modal.classList.add('show');
+      
+      // Sparkle effect
+      const rect = e.target.getBoundingClientRect();
+      createSparkles(rect.left + rect.width/2, rect.top + rect.height/2);
+      
+      // More sparkles after appearance
+      setTimeout(() => {
+        const cx = window.innerWidth/2, cy = window.innerHeight/2;
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => createSparkles(cx + (Math.random()-0.5)*400, cy), i*200);
+        }
+      }, 500);
+      
+      document.getElementById('downloadBtn').onclick = () => {
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = 'README.png';
+        a.click();
+        showToast('✓ Downloaded');
+      };
+    } catch(err) {
+      showToast('❌ Error: ' + err.message);
+    } finally {
+      renderEl.remove();
+    }
+  });
+  
+  document.getElementById('modalClose').addEventListener('click', () => {
+    document.getElementById('imageModal').classList.remove('show');
+  });
+  
+  document.getElementById('imageModal').addEventListener('click', e => {
+    if (e.target.id === 'imageModal') e.target.classList.remove('show');
+  });
+  
+  const SAMPLE_MD = `# 🚀 Welcome to MD Visualizer Pro
+
+A **beautiful** and *powerful* markdown editor with live preview.
+
+## ✨ Features
+
+- 📝 Real-time preview
+- 🖼️ Convert to image
+- 💾 Auto-save state
+- ↔️ Vertical/Horizontal layout
+- 🎨 Beautiful UI
+
+## 📦 Installation
+
+\`\`\`bash
+npm install awesome-package
+npm start
+\`\`\`
+
+## 🔧 Usage
+
+Use \`inline code\` or check the example:
+
+\`\`\`javascript
+function hello(name) {
+  return \`Hello, \${name}!\`;
+}
+console.log(hello('World'));
+\`\`\`
+
+## 📊 Comparison
+
+| Feature | Basic | Pro |
+|---------|-------|-----|
+| Preview | ✓ | ✓ |
+| Export Image | ✗ | ✓ |
+| Auto-save | ✗ | ✓ |
+
+## 💬 Quote
+
+> The best way to predict the future is to invent it.
+
+## 🔗 Links
+
+Visit [our website](https://example.com) for more info.
+
+---
+
+Made with ❤️ and lots of ☕`;
+  
+  // Auto-load README.md from current directory
+  async function tryAutoLoadReadme() {
+    if (localStorage.getItem('mdvis_content')) return;
+    try {
+      const res = await fetch('README.md');
+      if (res.ok) {
+        const text = await res.text();
+        editor.value = text;
+        updatePreview();
+        showToast('✓ Loaded README.md');
+        return;
+      }
+    } catch(e) {}
+    editor.value = SAMPLE_MD;
+    updatePreview();
+  }
+  
+  restoreState();
+  if (!editor.value) tryAutoLoadReadme();
+  
+  // Save before unload
+  window.addEventListener('beforeunload', saveState);
+</script>
+
+</body>
+</html>
